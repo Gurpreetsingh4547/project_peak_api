@@ -1,3 +1,8 @@
+// Packages
+import crypto from "crypto";
+import ejs from "ejs";
+import { readFileSync } from "fs";
+
 // Models
 import { User } from "../models/user.js";
 
@@ -26,7 +31,7 @@ export const registerUser = async (req, res) => {
     }
 
     // Genrate OTP
-    const otp = Math.floor(Math.random() * 1000000);
+    const otp = crypto.randomInt(100000, 999999);
 
     // Create a new user
     user = await User.create({
@@ -40,8 +45,35 @@ export const registerUser = async (req, res) => {
       role: "Admin",
     });
 
+    // Read the EJS template file
+    const emailTemplate = readFileSync(
+      "./htmlTemplates/emailTemplate.ejs",
+      "utf-8"
+    );
+
+    // Read Company logo
+    const companyLogo = readFileSync("./assets/logo.png", {
+      encoding: "base64",
+    });
+
+    const renderedTemplate = ejs.render(emailTemplate, {
+      recipientName: full_name, // recipient's name
+      service: "Project Peak", // service or product name
+      otp: otp, // generated OTP
+      timeFrame: "5 minutes", // time frame for using OTP
+      action: "Sign up", // action for which OTP is used
+      supportContact: "projectpeak12@gmail.com", // support contact information
+      senderName: "Project Peak", // sender's name
+      senderPosition: "Customer Support Representative", // sender's position
+    });
+
     // Send Otp Mail
-    await sendMail(email, "Verify your account", `Your OTP is ${otp}`);
+    await sendMail(
+      email,
+      "Your One-Time Password (OTP) for Project Peak",
+      ``,
+      renderedTemplate
+    );
 
     // Send Token After Registeration
     SendToken(
@@ -51,6 +83,7 @@ export const registerUser = async (req, res) => {
       "OTP sent to your email, please verify your account"
     );
   } catch (error) {
+    console.log(error);
     // Return error response if an exception occurs
     res.status(500).json({ success: false, message: error.message });
   }

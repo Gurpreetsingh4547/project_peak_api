@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Email - Project Peak</title>
+    <style>
+        /* Add your custom CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img class="logo" src="https://i.imgur.com/KyPxlAG.png" alt="Project Peak Logo">
+        </div>
+        <div class="content">
+            <h2>Your One-Time Password (OTP) for Project Peak</h2>
+            <p>Dear <%= recipientName %>,</p>
+            <p>Thank you for choosing Project Peak for your <%= service %> needs. To ensure the security of your account, we have generated a one-time password (OTP) for authentication purposes.</p>
+            <p><strong>Your OTP is: <%= otp %></strong></p>
+            <p>Please use this OTP within the next <%= timeFrame %> to complete your <%= action %>. Do not share this OTP with anyone for security reasons.</p>
+            <p>If you did not initiate this action or have any concerns regarding the OTP, please contact our support team immediately at <%= supportContact %>.</p>
+            <p>Thank you for trusting Project Peak. We look forward to serving you.</p>
+            <p>Best regards,</p>
+            <p><%= senderName %><br><%= senderPosition %><br>Project Peak</p>
+        </div>
+    </div>
+</body>
+</html>
