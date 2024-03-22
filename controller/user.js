@@ -9,6 +9,12 @@ import { User } from "../models/user.js";
 // Services
 import { sendMail } from "../utils/SendMail.js";
 import { SendToken } from "../utils/SendToken.js";
+import {
+  HaveValue,
+  IsEqual,
+  IsObjectHaveValue,
+  IsTrue,
+} from "../services/helper.js";
 
 /**
  * Register a new user
@@ -18,13 +24,13 @@ import { SendToken } from "../utils/SendToken.js";
 export const registerUser = async (req, res) => {
   try {
     // Destructure name, email, and password from request body
-    const { first_name, last_name, full_name, email, password } = req.body;
+    const { first_name, last_name, full_name, email, password } = req?.body;
 
     // Check if user with the same email already exists
     let user = await User.findOne({ email });
 
     // If user already exists, return an error response
-    if (user) {
+    if (IsObjectHaveValue(user)) {
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
@@ -50,11 +56,6 @@ export const registerUser = async (req, res) => {
       "./htmlTemplates/emailTemplate.ejs",
       "utf-8"
     );
-
-    // Read Company logo
-    const companyLogo = readFileSync("./assets/logo.png", {
-      encoding: "base64",
-    });
 
     const renderedTemplate = ejs.render(emailTemplate, {
       recipientName: full_name, // recipient's name
@@ -83,8 +84,6 @@ export const registerUser = async (req, res) => {
       "OTP sent to your email, please verify your account"
     );
   } catch (error) {
-    console.log(error);
-    // Return error response if an exception occurs
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -97,13 +96,13 @@ export const registerUser = async (req, res) => {
 export const verify = async (req, res) => {
   try {
     // Convert OTP to number
-    const otp = Number(req.body.otp);
+    const otp = Number(req?.body?.otp);
 
     // Find user by ID
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req?.user?._id);
 
     // Check if OTP is valid and not expired
-    if (user.otp !== otp || user.otp_expiry < Date.now()) {
+    if (!IsEqual(user?.otp, otp) || user?.otp_expiry < Date.now()) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid OTP or has been Expired" });
@@ -136,7 +135,7 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // If email or password is missing, return a 400 error response
-    if (!email || !password) {
+    if (!HaveValue(email) || !HaveValue(password)) {
       return res
         .status(400)
         .json({ success: false, message: "Please provide email and password" });
@@ -146,7 +145,7 @@ export const loginUser = async (req, res) => {
     let user = await User.findOne({ email }).select("+password");
 
     // If user does not exist, return a 400 error response
-    if (!user) {
+    if (!IsObjectHaveValue(user)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid Email or Password" });
@@ -156,7 +155,7 @@ export const loginUser = async (req, res) => {
     const isMatch = await user.comparePassword(password);
 
     // If passwords do not match, return a 400 error response
-    if (!isMatch) {
+    if (!IsTrue(isMatch)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid Email or Password" });
@@ -164,6 +163,64 @@ export const loginUser = async (req, res) => {
 
     // Send token and return a 200 success response
     SendToken(res, user, 200, "Login successfully");
+  } catch (error) {
+    // Return a 500 error response if an exception occurs
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Resends the OTP (One-Time Password) to the user's email address.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @return {Promise<void>} - A promise that resolves when the OTP is sent successfully.
+ */
+export const resendOtp = async (req, res) => {
+  try {
+    // Find user by ID
+    const user = await User.findById(req?.user?._id);
+
+    if (!IsObjectHaveValue(user)) {
+      return res.status(500).json({
+        success: false,
+        message: "User not found. Please register again.",
+      });
+    }
+
+    // Genrate OTP
+    const otp = crypto.randomInt(100000, 999999);
+    user.otp = otp;
+    user.otp_expiry = new Date(Date.now() + process.env.OTP_EXPIRE * 60 * 1000);
+
+    // Read the EJS template file
+    const emailTemplate = readFileSync(
+      "./htmlTemplates/emailTemplate.ejs",
+      "utf-8"
+    );
+
+    const renderedTemplate = ejs.render(emailTemplate, {
+      recipientName: user?.full_name, // recipient's name
+      service: "Project Peak", // service or product name
+      otp: otp, // generated OTP
+      timeFrame: "5 minutes", // time frame for using OTP
+      action: "Sign up", // action for which OTP is used
+      supportContact: "projectpeak12@gmail.com", // support contact information
+      senderName: "Project Peak", // sender's name
+      senderPosition: "Customer Support Representative", // sender's position
+    });
+
+    // Send Otp Mail
+    await sendMail(
+      user?.email,
+      "Your One-Time Password (OTP) for Project Peak",
+      ``,
+      renderedTemplate
+    );
+
+    // Save user changes
+    await user.save();
+
+    res.status(200).json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
     // Return a 500 error response if an exception occurs
     res.status(500).json({ success: false, message: error.message });
