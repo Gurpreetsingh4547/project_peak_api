@@ -9,19 +9,23 @@ const userSchema = new mongoose.Schema({
   first_name: {
     type: String,
     required: true,
+    trim: true,
   },
   last_name: {
     type: String,
     required: true,
+    trim: true,
   },
   full_name: {
     type: String,
     reqruied: true,
+    trim: true,
   },
   email: {
     type: String,
     reqruied: true,
     unique: true,
+    trim: true,
   },
   password: {
     type: String,
@@ -44,6 +48,9 @@ const userSchema = new mongoose.Schema({
   resetPasswordOtpExpire: Date,
 });
 
+/**
+ * Hash the password before saving the user
+ */
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
@@ -62,10 +69,18 @@ userSchema.methods.getJWTToken = function () {
   });
 };
 
+/**
+ * Compare the entered password with the hashed password
+ * @param {string} enteredPassword - The entered password
+ * @returns {Promise<boolean>} - A promise that resolves to true if the passwords match, false otherwise
+ */
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+/**
+ * Index for otp_expiry
+ */
 userSchema.index({ otp_expiry: 1 }, { expireAfterSeconds: 0 });
 
 export const User = mongoose.model("User", userSchema);
