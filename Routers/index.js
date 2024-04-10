@@ -15,6 +15,7 @@ import {
   CreateProject,
   DeleteProject,
   GetAllProjects,
+  UpdateProject,
 } from "../controller/projects.js";
 
 // Define Router
@@ -27,8 +28,9 @@ router.route("/login").post(loginUser);
 router.route("/resend/otp").post(isAuthenticated, resendOtp);
 
 // Define Project Routes
-router.route("/add/project").post(isAuthenticated, CreateProject);
+router.route("/add/projects").post(isAuthenticated, CreateProject);
 router.route("/get/projects").get(isAuthenticated, GetAllProjects);
 router.route("/delete/projects/:id").delete(isAuthenticated, DeleteProject);
+router.route("/update/projects/:id").put(isAuthenticated, UpdateProject);
 
 export default router;

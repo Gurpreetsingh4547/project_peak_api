@@ -111,3 +111,41 @@ export const DeleteProject = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+/**
+ * Updates a project with the provided ID, name, and description.
+ * @param {Object} req - the request object
+ * @param {Object} res - the response object
+ * @return {Promise<void>}
+ */
+export const UpdateProject = async (req, res) => {
+  const { id } = req?.params;
+  const { name = "", description = "" } = req?.body;
+  try {
+    if (!HaveValue(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Project ID is required" });
+    }
+
+    // Check if project exists and update the values
+    const project = await Projects.findByIdAndUpdate(id, {
+      name,
+      description,
+    });
+
+    // Check if project not exists
+    if (!IsObjectHaveValue(project)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Project not found" });
+    }
+
+    // Send success response
+    res
+      .status(200)
+      .json({ success: true, message: "Project updated successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
