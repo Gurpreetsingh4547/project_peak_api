@@ -129,7 +129,7 @@ export const UpdateProject = async (req, res) => {
     }
 
     // Check if project exists and update the values
-    const project = await Projects.findByIdAndUpdate(id, {
+    let project = await Projects.findByIdAndUpdate(id, {
       name,
       description,
     });
@@ -140,6 +140,8 @@ export const UpdateProject = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Project not found" });
     }
+
+    project = { ...project, name, description };
 
     // Send success response
     res.status(200).json({
