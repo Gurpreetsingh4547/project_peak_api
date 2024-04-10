@@ -61,7 +61,7 @@ export const CreateProject = async (req, res) => {
 export const GetAllProjects = async (req, res) => {
   try {
     const { name = "", page = 1, limit = 10 } = req?.body;
-    const query = {};
+    const query = { created_by: req?.user?._id };
 
     // Check if name is provided
     if (HaveValue(name)) {
@@ -129,10 +129,14 @@ export const UpdateProject = async (req, res) => {
     }
 
     // Check if project exists and update the values
-    let project = await Projects.findByIdAndUpdate(id, {
-      name,
-      description,
-    });
+    let project = await Projects.findByIdAndUpdate(
+      id,
+      {
+        name,
+        description,
+      },
+      { new: true }
+    );
 
     // Check if project not exists
     if (!IsObjectHaveValue(project)) {
@@ -140,8 +144,6 @@ export const UpdateProject = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Project not found" });
     }
-
-    project = { ...project, name, description };
 
     // Send success response
     res.status(200).json({
