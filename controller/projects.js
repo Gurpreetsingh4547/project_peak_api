@@ -142,9 +142,11 @@ export const UpdateProject = async (req, res) => {
     }
 
     // Send success response
-    res
-      .status(200)
-      .json({ success: true, message: "Project updated successfully" });
+    res.status(200).json({
+      success: true,
+      message: "Project updated successfully",
+      project,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
