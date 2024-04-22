@@ -73,8 +73,18 @@ export const GetAllProjects = async (req, res) => {
     // Retrieve projects
     const projects = await Projects.find(query).skip(skip).limit(limit);
 
+    // Count total number of projects
+    const count = await Projects.countDocuments(query);
+
+    // Calculate the total number of pages
+    const total_pages = Math.ceil(count / limit);
+
     // Send success response
-    res.status(200).json({ success: true, data: projects });
+    res.status(200).json({
+      success: true,
+      data: projects,
+      pagination: { page, limit, total_pages },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
