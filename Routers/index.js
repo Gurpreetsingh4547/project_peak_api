@@ -3,9 +3,11 @@ import express from "express";
 
 // Controllers
 import {
+  forgortPassword,
   loginUser,
   registerUser,
   resendOtp,
+  resetPassword,
   verify,
 } from "../controller/user.js";
 
@@ -26,6 +28,8 @@ router.route("/signup").post(registerUser);
 router.route("/verify").post(isAuthenticated, verify);
 router.route("/login").post(loginUser);
 router.route("/resend/otp").post(isAuthenticated, resendOtp);
+router.route("/forget/password").post(forgortPassword);
+router.route("/reset/password").post(resetPassword);
 
 // Define Project Routes
 router.route("/add/projects").post(isAuthenticated, CreateProject);
