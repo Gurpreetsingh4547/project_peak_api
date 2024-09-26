@@ -2,6 +2,7 @@
 import crypto from "crypto";
 import ejs from "ejs";
 import { readFileSync } from "fs";
+import jwt from "jsonwebtoken";
 
 // Models
 import { User } from "../models/user.js";
@@ -221,6 +222,125 @@ export const resendOtp = async (req, res) => {
     await user.save();
 
     res.status(200).json({ success: true, message: "OTP sent successfully" });
+  } catch (error) {
+    // Return a 500 error response if an exception occurs
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Forgot password with email token link.
+ * @param {object} req
+ * @param {object} res
+ * @returns JSON
+ */
+export const forgortPassword = async (req, res) => {
+  try {
+    const { email = "" } = req?.body;
+
+    if (!HaveValue(email)) {
+      return res
+        .status(412)
+        .json({ success: false, message: "Email is required." });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!IsObjectHaveValue(user)) {
+      return res.status(412).json({
+        success: false,
+        message: "Please provide valid email address.",
+      });
+    }
+
+    const resetToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET, // Use a secure secret stored in env
+      { expiresIn: "1d" }
+    );
+
+    user.resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    user.resetPasswordExpires = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    const resetURL = `${
+      process.env.APP_URL.split(" ")[0]
+    }/verify/token/${resetToken}`;
+
+    // Read the EJS template file
+    const forgotPasswordTemplate = readFileSync(
+      "./htmlTemplates/forgotPasswordTemplate.ejs",
+      "utf-8"
+    );
+
+    const renderedTemplate = ejs.render(forgotPasswordTemplate, {
+      recipientName: user?.full_name, // recipient's name
+      service: "Project Peak", // service or product name
+      resetLink: resetURL, // generated OTP
+      supportContact: "projectpeak12@gmail.com", // support contact information
+      senderName: "Project Peak", // sender's name
+      senderPosition: "Customer Support Representative", // sender's position
+    });
+
+    // Send Otp Mail
+    await sendMail(
+      user?.email,
+      "Your Project Peak Password Reset Link (Expires in 1 Day)",
+      ``,
+      renderedTemplate
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "'Password reset link has been sent to your email.",
+    });
+  } catch (error) {
+    // Return a 500 error response if an exception occurs
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Reset password by verifing token.
+ * @param {Object} req
+ * @param {Object} res
+ * @returns JSON
+ */
+export const resetPassword = async (req, res) => {
+  try {
+    const { token = "", password = "" } = req?.body;
+
+    if (!HaveValue(token) || !HaveValue(password)) {
+      return res.status(401).json({
+        success: false,
+        message: "Please provide token or password.",
+      });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Find the user with this reset token and check if it is still valid
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).send("Invalid or expired token");
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Passowrd forgot successfully.",
+    });
   } catch (error) {
     // Return a 500 error response if an exception occurs
     res.status(500).json({ success: false, message: error.message });
