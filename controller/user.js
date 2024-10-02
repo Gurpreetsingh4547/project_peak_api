@@ -349,3 +349,18 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+/**
+ * Clears the authentication cookie and logs out the user.
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @return {Object} The JSON response containing success status and message
+ */
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    res.status(200).json({ success: true, message: "Logout successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

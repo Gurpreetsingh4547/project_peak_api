@@ -5,6 +5,7 @@ import express from "express";
 import {
   forgortPassword,
   loginUser,
+  logout,
   registerUser,
   resendOtp,
   resetPassword,
@@ -26,6 +27,7 @@ const router = express.Router();
 // Define User Routes
 router.route("/signup").post(registerUser);
 router.route("/verify").post(isAuthenticated, verify);
+router.route("/logout").post(isAuthenticated, logout);
 router.route("/login").post(loginUser);
 router.route("/resend/otp").post(isAuthenticated, resendOtp);
 router.route("/forget/password").post(forgortPassword);
