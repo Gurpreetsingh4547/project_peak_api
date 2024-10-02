@@ -21,6 +21,10 @@ const ProjectsSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  status: {
+    type: String,
+    default: "Pending",
+  },
 });
 
 export const Projects = mongoose.model("Projects", ProjectsSchema);

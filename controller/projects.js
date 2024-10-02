@@ -39,6 +39,7 @@ export const CreateProject = async (req, res) => {
       name,
       description,
       created_by: user?._id,
+      status: "Pending",
     });
 
     // Send success response
@@ -132,7 +133,7 @@ export const DeleteProject = async (req, res) => {
  */
 export const UpdateProject = async (req, res) => {
   const { id } = req?.params;
-  const { name = "", description = "" } = req?.body;
+  const { name = "", description = "", status = "" } = req?.body;
   try {
     if (!HaveValue(id)) {
       return res
@@ -146,6 +147,7 @@ export const UpdateProject = async (req, res) => {
       {
         name,
         description,
+        status,
       },
       { new: true }
     );

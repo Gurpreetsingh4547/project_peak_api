@@ -23,7 +23,7 @@ export const SendToken = (res, user, statusCode, message) => {
   // Set user data
   const data = {
     _id: user._id,
-    name: user.name,
+    full_name: user.full_name,
     email: user.email,
     avatar: user.avatar,
     tasks: user.tasks,
