@@ -28,6 +28,7 @@ export const SendToken = (res, user, statusCode, message) => {
     avatar: user.avatar,
     tasks: user.tasks,
     verified: user.verified,
+    token: token,
   };
 
   // Send response
