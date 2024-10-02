@@ -342,7 +342,7 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Password changed successfully.",
+      message: "Try to login with new password.",
     });
   } catch (error) {
     // Return a 500 error response if an exception occurs
