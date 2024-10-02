@@ -62,6 +62,7 @@ export const GetAllProjects = async (req, res) => {
   try {
     const { name = "", page = 1, limit = 10 } = req?.body;
     const query = { created_by: req?.user?._id };
+    let currentPage = page;
 
     // Check if name is provided
     if (HaveValue(name)) {
@@ -83,7 +84,7 @@ export const GetAllProjects = async (req, res) => {
     res.status(200).json({
       success: true,
       data: projects,
-      pagination: { page, limit, total_pages },
+      pagination: { currentPage, limit, total_pages },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
