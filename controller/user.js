@@ -295,7 +295,7 @@ export const forgortPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "'Password reset link has been sent to your email.",
+      message: "Password reset link has been sent to your email.",
     });
   } catch (error) {
     // Return a 500 error response if an exception occurs
@@ -329,7 +329,10 @@ export const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).send("Invalid or expired token");
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired token.",
+      });
     }
 
     user.password = password;
@@ -339,7 +342,7 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Passowrd forgot successfully.",
+      message: "Password changed successfully.",
     });
   } catch (error) {
     // Return a 500 error response if an exception occurs
