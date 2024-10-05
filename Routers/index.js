@@ -19,6 +19,7 @@ import {
   DeleteProject,
   GetAllProjects,
   GetProjectStatus,
+  GetRecentChangesInProject,
   UpdateProject,
 } from "../controller/projects.js";
 
@@ -40,5 +41,8 @@ router.route("/get/projects").get(isAuthenticated, GetAllProjects);
 router.route("/delete/projects/:id").delete(isAuthenticated, DeleteProject);
 router.route("/update/projects/:id").put(isAuthenticated, UpdateProject);
 router.route("/project/status").get(isAuthenticated, GetProjectStatus);
+router
+  .route("/recent/projects")
+  .get(isAuthenticated, GetRecentChangesInProject);
 
 export default router;

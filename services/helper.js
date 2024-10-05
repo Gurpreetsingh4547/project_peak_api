@@ -454,3 +454,32 @@ export const ArraySortByKey = (items, key) => {
     return 0;
   });
 };
+
+/**
+ * Get Updated By Value from Project Object.
+ * @param {object} project
+ * @param {object} body
+ * @returns String
+ */
+export const GetUpdatedBy = (project, body) => {
+  if (
+    !IsEqual(project?.title, body?.name) &&
+    !IsEqual(project?.description, body?.description)
+  ) {
+    return `Project rename to <b>${body?.name}</b> and description update to </b>${body?.description}</b>`;
+  }
+
+  if (!IsEqual(project?.name, body?.name)) {
+    return `Project rename from <b>${project?.name}</b> to <b>${body?.name}</b>`;
+  }
+
+  if (!IsEqual(project?.description, body?.description)) {
+    return `Project description update to <b>${body?.description}</b>`;
+  }
+
+  if (!IsEqual(project?.status, body?.status)) {
+    return `Project status update from <b>${project?.status}</b> to <b>${body?.status}</b>`;
+  }
+
+  return "No changes found.";
+};

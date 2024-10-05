@@ -2,7 +2,11 @@
 import { Projects } from "../models/projects.js";
 
 // Services
-import { HaveValue, IsObjectHaveValue } from "../services/helper.js";
+import {
+  GetUpdatedBy,
+  HaveValue,
+  IsObjectHaveValue,
+} from "../services/helper.js";
 
 /**
  * Creates a new project.
@@ -141,6 +145,8 @@ export const UpdateProject = async (req, res) => {
         .json({ success: false, message: "Project ID is required" });
     }
 
+    const beforeUpdate = await Projects.findById(id);
+
     // Check if project exists and update the values
     let project = await Projects.findByIdAndUpdate(
       id,
@@ -148,6 +154,8 @@ export const UpdateProject = async (req, res) => {
         name,
         description,
         status,
+        updated_at: Date.now(),
+        recent_changes: GetUpdatedBy(beforeUpdate, req?.body),
       },
       { new: true }
     );
@@ -240,6 +248,27 @@ export const GetProjectStatus = async (req, res) => {
     res.status(200).json({
       success: true,
       data: formattedData,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/**
+ * Get recent changes in project
+ * @param {object} req
+ * @param {object} res
+ */
+export const GetRecentChangesInProject = async (req, res) => {
+  try {
+    const { limit = 6 } = req?.query;
+    const userId = req?.user?._id;
+    const project = await Projects.find({ created_by: userId })
+      .sort({ updated_at: -1 })
+      .limit(limit);
+    res.status(200).json({
+      success: true,
+      data: project,
     });
   } catch (error) {
     res.status(500).json({ error: "Server error" });

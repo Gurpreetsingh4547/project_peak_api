@@ -1,3 +1,4 @@
+import { name } from "ejs";
 import mongoose from "mongoose";
 
 // Schema for projects
@@ -24,6 +25,14 @@ const ProjectsSchema = new mongoose.Schema({
   status: {
     type: String,
     default: "Pending",
+  },
+  updated_at: {
+    type: Date,
+    default: Date.now,
+  },
+  recent_changes: {
+    type: String,
+    default: null,
   },
 });
 
