@@ -169,3 +169,79 @@ export const UpdateProject = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+/**
+ * Get Project Status based on month and year
+ * @param {object} req
+ * @param {object} res
+ */
+export const GetProjectStatus = async (req, res) => {
+  try {
+    // Define the range for the months you want to query
+    const startYear = new Date().getFullYear(); // Change as necessary
+    const endYear = new Date().getFullYear(); // Change as necessary
+
+    // Generate all months in the defined range
+    const months = [];
+    for (let year = startYear; year <= endYear; year++) {
+      for (let month = 1; month <= 12; month++) {
+        months.push({ year, month });
+      }
+    }
+    const userId = req?.user?._id;
+
+    // Fetch aggregated project data, filtered by user ID
+    const projectData = await Projects.aggregate([
+      {
+        $match: {
+          created_by: userId,
+          status: { $in: ["Complete", "Pending", "In Progress", "Block"] },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$created_at" },
+            year: { $year: "$created_at" },
+            status: "$status",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1, "_id.status": 1 },
+      },
+    ]);
+
+    // Initialize a structure to hold the counts
+    const result = {};
+    months.forEach(({ year, month }) => {
+      const monthKey = `${year}-${month}`;
+      result[monthKey] = {
+        Complete: 0,
+        Pending: 0,
+        "In Progress": 0,
+        Block: 0,
+      };
+    });
+
+    // Fill in the counts from the aggregated data
+    projectData.forEach((data) => {
+      const monthKey = `${data._id.year}-${data._id.month}`;
+      result[monthKey][data._id.status] = data.count;
+    });
+
+    // Format the final response
+    const formattedData = Object.keys(result).map((monthKey) => ({
+      month: monthKey,
+      ...result[monthKey], // Spread the counts for each status
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedData,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
