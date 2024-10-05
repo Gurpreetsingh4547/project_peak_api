@@ -463,7 +463,7 @@ export const ArraySortByKey = (items, key) => {
  */
 export const GetUpdatedBy = (project, body) => {
   if (
-    !IsEqual(project?.title, body?.name) &&
+    !IsEqual(project?.name, body?.name) &&
     !IsEqual(project?.description, body?.description)
   ) {
     return `Project rename to <b>${body?.name}</b> and description update to </b>${body?.description}</b>`;
